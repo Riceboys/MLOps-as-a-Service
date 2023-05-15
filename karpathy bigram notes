@@ -1,0 +1,26 @@
+Tiny Shakespeare Dataset: https://raw.githubusercontent.com/karpathy/char-rnn/master/data/tinyshakespeare/input.txt
+create data preprocessors for character level encoding, tiktoken tokenizer (sub-word level), and maybe a preprocessor using SentencePiece tokenizer (sub-word level)
+
+when training a transformer, we never input the entire dataset at once (that would be too computationally intensive); 
+instead what we do is we sample random blocks of characters in the dataset and feed it into the transformer; hence the block size is the number of characters in a training block.
+
+batch size is the number of independent sequences we will process in parallel. 
+
+simplest neural network for NLP = bigram model
+
+torch.multinomial: input = probabilities, output = integers sampled according to the probabilities inputted
+torch.Generator: random number generator; used to set the seed for torch.multinomial in Andrej Karpathy's tutorial
+
+read broadcasting semantics in pytorch. in broadcasting, you align the dimenion on the right, create the new dimension, and then broadcast
+(27, 27)
+(27)
+
+(27, 27)
+(  , 27)
+
+(27, 27)
+( 1, 27)
+
+model smoothing: adding some fake counts to avoid the situation of the log-likelihood outputting inf because of prob(jq) = 0
+
+regularization = label smoothing 
