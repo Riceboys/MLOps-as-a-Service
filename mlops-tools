@@ -1,0 +1,24 @@
+MLflow:
+	- MLflow Tracking: An API for logging parameters, code versions, metrics, model environment dependencies, and model artifacts when running your machine learning code. MLflow Tracking has a UI for reviewing and comparing runs and their results. This image from the MLflow Tracking UI shows a chart linking metrics (learning rate and momentum) to a loss metric. Tracking ML experiments to record and compare model parameters, evaluate performance, and manage artifacts.
+
+	- MLflow Projects: Packaging ML code in a reusable, reproducible form in order to share with other data scientists or transfer to production. A standard format for packaging reusable data science code that can be run with different parameters to train models, visualize data, or perform any other data science task.
+
+	- MLflow Models: A model packaging format and suite of tools that let you easily deploy a trained model (from any ML library) for batch or real-time inference on platforms such as Docker, Apache Spark, Databricks, Azure ML and AWS SageMaker. The artifacts in the model directory include the model weights, files describing the model’s environment and dependencies, and sample code for loading the model and inferencing with it. Packaging and deploying models from a variety of ML libraries to a variety of model serving and inference platforms.
+
+	- MLflow Registry: Collaboratively managing a central model store, including model versioning, stage transitions, and annotations. A centralized model store, set of APIs, and UI focused on the approval, quality assurance, and deployment of an MLflow Model.
+
+	- MLflow Recipes: Predefined templates for developing high-quality models for a variety of common tasks, including classification and regression. Accelerating iterative development with templates and reusable scripts for a variety of common modeling tasks.
+
+	- Use cases: 
+		- A team of data scientists uses MLflow Tracking to record parameters and metrics from their experiments on a single problem domain. They use the MLflow UI to compare results and guide their exploration of the solution space. They store the outputs of their runs as MLflow models.
+		- An MLOps engineer uses the MLflow UI to compare the performance of different models and selects the best one for deployment. They register the model in the MLflow Registry to track this specific version’s performance in production.
+		- An MLOps engineer uses MLflow models to deploy a model to a production environment. They use MLflow Registry to track the model’s performance and to compare it to other models in production.
+		- A data scientist beginning work with a new project structures their code as an MLflow Project so that they can easily share it with others and run it with different parameters.
+
+Seldon Core:
+
+KServe:
+
+Triton: 
+
+FEAST: 
