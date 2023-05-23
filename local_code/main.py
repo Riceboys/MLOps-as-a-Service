@@ -4,8 +4,7 @@ from mlops_decorators import MLOpsPipeline
 
 pipeline = MLOpsPipeline()
 
-#@pipeline.train("started training", "training ended", "OKBLUE")
-@pipeline.train()
+@pipeline.train("started training", "training ended", "OKBLUE")
 def receive_command():
     print("loading data")
 

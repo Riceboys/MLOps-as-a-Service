@@ -8,9 +8,7 @@ class MLOpsPipeline:
     def __init__(self) -> None:
         self.app.run(host='0.0.0.0', port=12345) 
 
-    @app.route('/train', methods=['POST'])
-    def train():
-    #def train(self, start_msg, end_msg, color):
+    def train(self, start_msg, end_msg, color):
         colors = {
             "HEADER": "\033[95m",
             "OKBLUE": "\033[94m",
@@ -32,6 +30,7 @@ class MLOpsPipeline:
 
         def decorator(func):
 
+            @self.app.route('/train', methods=['POST'])
             def wrapper(*args, **kwargs):
 
                 print(
@@ -46,7 +45,6 @@ class MLOpsPipeline:
                 command = request.get_data().decode()
                 result = func(*args, **kwargs)
 
-
                 print(
                     "{}{}. {}".format(
                         colors[color],
@@ -56,8 +54,8 @@ class MLOpsPipeline:
                     )
                 )
 
-                return result
-                #return 'Command received successfully'
+                #return result
+                return 'Command received successfully'
 
             return wrapper
 
