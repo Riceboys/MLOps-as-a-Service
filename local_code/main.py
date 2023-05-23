@@ -1,15 +1,16 @@
-from flask import Flask, request
+from flask import request
+from mlops_decorators import MLOpsPipeline
 
-app = Flask(__name__)
 
-@app.route('/receive-command', methods=['POST'])
+pipeline = MLOpsPipeline()
+
+#@pipeline.train("started training", "training ended", "OKBLUE")
+@pipeline.train()
 def receive_command():
-    command = request.get_data().decode()
+    print("loading data")
 
-    # Process the received command
-    # Add your logic here
 
-    return 'Command received successfully'
-
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=12345)
+if __name__ == "__main__":
+    #pipeline.run()
+    #receive_command()
+    print("done main")
