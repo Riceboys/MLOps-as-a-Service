@@ -1,15 +1,33 @@
 from flask import Flask, request
+import socket
 
 
 class MLOpsPipeline:
 
-    app = Flask(__name__)
+    def __init__(self, HOST='0.0.0.0', PORT=12345) -> None:
+        # Create a socket object
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
+            # Bind the socket to a specific host and port
+            server_socket.bind((HOST, PORT))
 
-    def __init__(self) -> None:
-        self.app.run(host='0.0.0.0', port=12345) 
+            # Listen for incoming connections
+            server_socket.listen()
 
-    @app.route('/train', methods=['POST'])
-    def train():
+            print(f"Server listening on {HOST}:{PORT}")
+
+            # Accept incoming connections
+            while True:
+                self.client_socket, self.client_address = server_socket.accept()
+
+    def respond(self):
+        # Send a response (optional)
+        response = "Command received successfully"
+        self.client_socket.sendall(response.encode())
+
+        # Close the client connection
+        self.client_socket.close()
+
+    def train(self):
     #def train(self, start_msg, end_msg, color):
         colors = {
             "HEADER": "\033[95m",
@@ -43,9 +61,10 @@ class MLOpsPipeline:
                     )
                 )
 
-                command = request.get_data().decode()
-                result = func(*args, **kwargs)
 
+                # Receive data from the client
+                command = self.client_socket.recv(1024).decode()
+                result = func(*args, **kwargs)
 
                 print(
                     "{}{}. {}".format(
@@ -55,6 +74,8 @@ class MLOpsPipeline:
                         colors["ENDC"]
                     )
                 )
+
+                self.respond()
 
                 return result
                 #return 'Command received successfully'
