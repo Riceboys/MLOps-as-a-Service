@@ -1,0 +1,22 @@
+version: '3'
+services:
+  python-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: mlops-image
+    container_name: mlops-pipeline
+    ports:
+      - "12345:12345"
+
+# build and run all image:
+# $ docker-compose up --build
+
+# remove container:
+# $ docker-compose down
+
+# display logs when building specific images
+# docker-compose build --no-cache --progress=plain xrca-prod
+
+# build specific container 
+# docker-compose up --build <target name>
