@@ -6,6 +6,8 @@ services:
       dockerfile: Dockerfile
     image: mlops-image
     container_name: mlops-pipeline
+    extra_hosts:  # this should allow the host.docker.internal command to work on linux
+      - "host.docker.internal:host-gateway"
     ports:
       - "12345:12345"
 

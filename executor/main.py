@@ -1,9 +1,11 @@
 import requests
+import socket
 
-ip_address = "192.168.0.172"
+# host.docker.internal DNS name only works on Docker Desktop for Mac, Docker Desktop for Windows, and Docker Toolbox.
+host_ip = socket.gethostbyname('host.docker.internal')
 port = "12345"
 end_point = "receive-command"
-external_server_url = f'http://{ip_address}:{port}/{end_point}'  
+external_server_url = f'http://{host_ip}:{port}/{end_point}'  
 
 command = 'Do something'
 
