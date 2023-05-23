@@ -1,15 +1,12 @@
-from flask import request
-from mlops_decorators import MLOpsPipeline
+from mlops_pipeline import MLOpsPipeline
 
 
 pipeline = MLOpsPipeline()
 
-@pipeline.train("started training", "training ended", "OKBLUE")
+@pipeline.train("training started", "trainind ended", "OKBLUE")
 def receive_command():
-    print("loading data")
-
+    print("training model now")
+    return None
 
 if __name__ == "__main__":
-    #pipeline.run()
-    #receive_command()
-    print("done main")
+    pipeline.run()
