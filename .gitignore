@@ -2,3 +2,4 @@ virtualenv/
 mlruns/
 outputs/
 mlvenv/
+.vscode/
