@@ -6,6 +6,7 @@ class MLOpsPipeline:
     app = Flask(__name__)
 
     def __init__(self) -> None:
+        # in the future, port 12345 cannot be hardcoded
         self.app.run(host='0.0.0.0', port=12345) 
 
     def train(self, start_msg, end_msg, color):
