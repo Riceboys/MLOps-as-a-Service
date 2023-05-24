@@ -1,4 +1,5 @@
 import yaml
+from config import get_tools
 
 
 if __name__ == "__main__":
@@ -7,4 +8,5 @@ if __name__ == "__main__":
     with open("/host_dir/mlops.yaml", "r") as yaml_file:
         yaml_text = yaml_file.read()
         yaml_data = yaml.safe_load(yaml_text)
-        print(yaml_data)
+
+        tools = get_tools(yaml_data=yaml_data)

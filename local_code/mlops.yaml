@@ -1,14 +1,22 @@
 version: '3'
-services:
-  mlops-service:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: mlops-image
-    container_name: mlops-pipeline
-    extra_hosts:        # this should allow the host.docker.internal command to work on linux
-      - "host.docker.internal:host-gateway"
-    ports:              # in the future, user needs to map desired port to port 12345 in the container, (HOST:CONTAINER)
-      - "12345:12345"   
-    volumes:            # host_path:container_path:mode, not sure if read-write (rw) is needed
-      - ../local_code:/host_dir:rw
+pipeline:
+  name: imagenet-resnet
+  stages:
+    - train:
+        tools:
+          - mlflow:
+              environment: local
+      schedule: "0 0 * * *"
+    - deploy:
+        tools:
+          - seldon core:
+              environment: executor
+        schedule: "0 0 * * *"
+    - monitor:
+        tools:
+          - ama:
+              parameters:
+                - path-length: 30
+          - weave:
+              parameters:
+                - epochs: 50
