@@ -50,9 +50,23 @@ class MLOpsYAML:
         for stage in self.yaml_data["pipeline"]["stages"]:
             for stage_info in stage.values():
                 for tool in stage_info["tools"]:
-                    for tool_name in tool:
+                    for tool_name, tool_info in tool.items():
+                        
+                        required_var = []
+                        for info, value in tool_info.items():
+                            if (info == "environment") and (value not in ["local", "executor"]):
+                                raise Exception(f"value of 'environment' tag under '{tool_name}' must be either 'local' or 'executor', not {value}")
+                            required_var.append(info)
+                        
                         if tool_name not in self.supported_tools:
                             raise Exception(f"'{tool_name}' is not a supported tool right now.")
+                        
+                        elif ("environment" not in required_var):
+                            raise Exception("every tool must be provided with 'environment' tag")
+                        
+                        elif ("version" not in required_var):
+                            raise Exception("every tool must be provided with 'version' tag")
+                        
                         else:
                             if tool_name not in tools:
                                 tools.append(tool_name)
