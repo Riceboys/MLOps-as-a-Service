@@ -3,3 +3,4 @@ mlruns/
 outputs/
 mlvenv/
 .vscode/
+.env
