@@ -11,7 +11,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the Python script to the working directory
-COPY *.py .
+COPY main.py .
 
 # Set the command to run the Python script
 CMD ["python", "main.py"]
