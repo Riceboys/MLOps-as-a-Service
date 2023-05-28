@@ -1,11 +1,11 @@
 version: '3'
 services:
-  python-app:
+  executor:
     build:
       context: ./executor
       dockerfile: Dockerfile
-    image: mlops-image
-    container_name: mlops-pipeline
+    image: mdo6180/anacostia-executor
+    container_name: anacostia-executor-pipeline
     extra_hosts:  # this should allow the host.docker.internal command to work on linux
       - "host.docker.internal:host-gateway"
     ports:
