@@ -21,8 +21,10 @@ async def main():
 
         executor_container = (
             client.container()
-            .from_(f"{DOCKER_HUB_USERNAME}/anacostia-executor:latest")
+            .from_("mdo6180/anacostia-executor:latest")
             .with_exposed_port(12345)
+            .with_env_variable("HOST", "192.168.0.172")
+            .with_env_variable("PORT", "12345")
         )
 
         version = await executor_container.stdout()

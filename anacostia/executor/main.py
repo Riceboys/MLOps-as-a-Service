@@ -1,6 +1,7 @@
 import requests
 import socket
 import schedule
+import os
 
 
 class Executor:
@@ -42,9 +43,12 @@ class Executor:
 
 if __name__ == "__main__":
 
+    HOST_IP = os.getenv("HOST")
+    PORT = os.getenv("PORT")
+
     executor = Executor(
-        HOST=socket.gethostbyname('host.docker.internal'),
-        PORT="12345",
+        HOST=HOST_IP,
+        PORT=PORT,
     )
 
     executor.run()

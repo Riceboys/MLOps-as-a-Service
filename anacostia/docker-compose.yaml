@@ -10,6 +10,10 @@ services:
       - "host.docker.internal:host-gateway"
     ports:
       - "12345:12345"
+    environment:
+      - HOST=192.168.0.172
+      - PORT=12345
+
   mlflow-service:
     build:
       context: ./mlflow
