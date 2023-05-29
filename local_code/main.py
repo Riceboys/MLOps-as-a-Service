@@ -1,7 +1,7 @@
 import sys
-sys.path.append("./Anacostia")
+sys.path.append("./anacostia")
 
-from Anacostia.api import MLOpsPipeline
+from anacostia.api import MLOpsPipeline
 import schedule
 
 
