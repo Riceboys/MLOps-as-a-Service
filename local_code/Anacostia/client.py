@@ -1,15 +1,11 @@
 import sys
 import anyio
 import dagger
-# from dotenv import load_dotenv
 import os
+import socket
 
 
 async def main():
-
-    # load_dotenv("./.env")
-    # DOCKER_HUB_USERNAME = os.getenv("DOCKER-HUB-USERNAME")
-    # DOCKER_HUB_PASSWORD = os.getenv("DOCKER-HUB-PASSWORD")
 
     config = dagger.Config(log_output=sys.stdout)
 
@@ -17,14 +13,18 @@ async def main():
     async with dagger.Connection(config) as client:
 
         # set secret as string value
-        #secret = client.set_secret("password", DOCKER_HUB_PASSWORD)
+        # secret = client.set_secret("password", DOCKER_HUB_PASSWORD)
+
+        hostname = socket.gethostname()
+        host_ip = socket.gethostbyname(hostname)
+        port = 12345
 
         executor_container = (
             client.container()
             .from_("mdo6180/anacostia-executor:latest")
-            .with_exposed_port(12345)
-            .with_env_variable("HOST", "192.168.0.172")
-            .with_env_variable("PORT", "12345")
+            .with_exposed_port(port)
+            .with_env_variable("HOST", host_ip)
+            .with_env_variable("PORT", f"{port}")
         )
 
         # log output of container to terminal
