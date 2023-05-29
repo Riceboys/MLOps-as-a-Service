@@ -3,3 +3,5 @@ mlruns/
 outputs/
 mlvenv/
 .vscode/
+.env
+__pycache__/

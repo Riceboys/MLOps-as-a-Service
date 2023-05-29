@@ -1,0 +1,38 @@
+version: '3'
+services:
+  executor:
+    build:
+      context: ./executor
+      dockerfile: Dockerfile
+    image: mdo6180/anacostia-executor
+    container_name: anacostia-executor-pipeline
+    extra_hosts:  # this should allow the host.docker.internal command to work on linux
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "12345:12345"
+    environment:
+      - HOST=192.168.0.172
+      - PORT=12345
+
+  mlflow-service:
+    build:
+      context: ./mlflow
+      dockerfile: Dockerfile
+    image: mlflow-image
+    container_name: mlflow-container
+    extra_hosts:  # this should allow the host.docker.internal command to work on linux
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "12345:12345"
+
+# build and run all image:
+# $ docker-compose up --build
+
+# remove container:
+# $ docker-compose down
+
+# display logs when building specific images
+# docker-compose build --no-cache --progress=plain xrca-prod
+
+# build specific container 
+# docker-compose up --build <target name>
