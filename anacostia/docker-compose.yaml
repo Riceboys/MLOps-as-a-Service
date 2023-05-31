@@ -8,11 +8,17 @@ services:
     container_name: anacostia-executor-pipeline
     extra_hosts:  # this should allow the host.docker.internal command to work on linux
       - "host.docker.internal:host-gateway"
+      - "anacostia-executor:172.25.0.2"
     ports:
       - "12345:12345"
+      - "12346:12346"
     environment:
       - HOST=192.168.0.172
       - PORT=12345
+    networks:
+      anacostia-network:
+        aliases:
+          - anacostia-executor
 
   mlflow-service:
     build:
@@ -24,6 +30,24 @@ services:
       - "host.docker.internal:host-gateway"
     ports:
       - "12345:12345"
+
+  toy:
+    build:
+      context: ./toy
+      dockerfile: Dockerfile
+    image: mdo6180/toy-executor
+    container_name: toy-executor-pipeline
+    ports:
+      - "8080:8080"
+      - "12345:12345"
+    networks:
+      anacostia-network:
+        aliases:
+          - toy
+
+networks:
+  anacostia-network:
+    driver: bridge
 
 # build and run all image:
 # $ docker-compose up --build

@@ -1,9 +1,11 @@
 from flask import Flask, request
+from app import app
 
 
 class MLOpsPipeline:
 
-    app = Flask(__name__)
+    #app = Flask(__name__)
+    app = app
 
     colors = {
         "HEADER": "\033[95m",

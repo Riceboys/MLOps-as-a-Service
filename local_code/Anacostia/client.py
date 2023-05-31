@@ -96,6 +96,8 @@ async def pipeline():
     async with dagger.Connection(config) as client:
         component = await AnacostiaExecutor(port=12345, host_ip="192.168.0.172", client=client, export_image=True).create_container() 
 
+    # see this tutorial for container-to-container networking with Dagger
+    # https://docs.dagger.io/757394/use-service-containers
 
 if __name__ == "__main__":
     pipeline()
