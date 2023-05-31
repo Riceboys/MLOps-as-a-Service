@@ -71,18 +71,11 @@ def anacostia_pipeline(func):
     def wrapper(*args, **kwargs):
 
         async def run_async_func():
-            # Perform any pre-function logic asynchronously
             print("Building your MLOps pipeline...")
-
-            # Call the original function asynchronously
             result = await func(*args, **kwargs)
-
-            # Perform any post-function logic asynchronously
             print("Done building MLOps pipeline.")
-
             return result
 
-        # Run the decorated function asynchronously
         return anyio.run(run_async_func)
 
     return wrapper
