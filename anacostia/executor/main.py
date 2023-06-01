@@ -19,9 +19,9 @@ class Executor:
         response = requests.post(external_server_url, data=command)
 
         if response.status_code == 200:
-            return 'Train command sent successfully'
+            return 'Train command sent successfully\n'
         else:
-            return 'Failed to send train command'
+            return 'Failed to send train command\n'
     
     def prepare_data(self):
         end_point = "prepare-data"
@@ -31,13 +31,14 @@ class Executor:
         response = requests.post(external_server_url, data=command)
 
         if response.status_code == 200:
-            print('Prepare data command sent successfully')
+            return 'Prepare data command sent successfully\n'
         else:
-            print('Failed to send prepare-date command')
+            return 'Failed to send prepare-date command\n'
     
     def run_all(self):
         self.prepare_data()
         self.train()
+        return "all steps executed successfully\n"
 
 
 if __name__ == "__main__":
