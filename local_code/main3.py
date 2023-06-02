@@ -6,7 +6,7 @@ socket_path = "/tmp/anacostia_socket.sock"
 client_socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
 client_socket.connect(socket_path)
 
-message = "train1"
+message = "start1"
 client_socket.sendall(message.encode())
 
 response = client_socket.recv(1024)
