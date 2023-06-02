@@ -7,16 +7,13 @@ import functools
 
 class AnacostiaComponent:
 
-    def __init__(self, port: int, host_ip: str = None, export_image: bool = False) -> None:
+    def __init__(self, host_ip: str = None, export_image: bool = False) -> None:
         if host_ip == None:
             hostname = socket.gethostname()
             self.host_ip = socket.gethostbyname(hostname)
         else:
             self.host_ip = host_ip
 
-        if self.is_port_in_use(port) == False:
-            self.port = port
-        
         self.export_image = export_image
         
     def is_port_in_use(self, port: int) -> bool:
@@ -35,7 +32,8 @@ class AnacostiaExecutor(AnacostiaComponent):
     
     def __init__(
         self, 
-        port: int, 
+        inbound_port: int, 
+        outbound_port: int,
         client: dagger.Client,
         host_ip: str = None, 
         export_image: bool = False, 
@@ -44,18 +42,43 @@ class AnacostiaExecutor(AnacostiaComponent):
 
         self.client = client
         self.image_link = f"mdo6180/anacostia-executor:{tag}"
-        super().__init__(port, host_ip, export_image)
+        super().__init__(host_ip, export_image)
+        
+        if self.is_port_in_use(inbound_port) == False:
+            self.inbound_port = inbound_port
+        
+        if self.is_port_in_use(outbound_port) == False:
+            self.outbound_port = outbound_port
 
     async def create_container(self):
-        executor_container = (
+        executor_container = await (
             self.client.container()
             .from_(self.image_link)
-            .with_exposed_port(self.port)
+            .with_exposed_port(self.inbound_port)
+            .with_exposed_port(self.outbound_port)
             .with_env_variable("HOST", self.host_ip)
-            .with_env_variable("PORT", f"{self.port}")
+            .with_env_variable("IN_PORT", f"{self.inbound_port}")
+            .with_env_variable("OUT_PORT", f"{self.outbound_port}")
         )
 
+
+        """
+        executor_service_container = await (
+            self.client.container()
+            .from_("python:3.9-slim")
+            .with_service_binding("anacostia-executor", executor_container)
+        )
+        """
+
+        await executor_container.stdout()
+        hostname = await executor_container.endpoint(scheme="http")
+        print(hostname)
+
+        #http_endpoint = await executor_container.endpoint(scheme="http")
+        #print(http_endpoint)
+
         # log output of container to terminal
+        """
         await executor_container.stdout()
 
         if self.export_image == True:
@@ -63,6 +86,7 @@ class AnacostiaExecutor(AnacostiaComponent):
             # https://docs.dagger.io/252029/load-images-local-docker-engine
             image = await executor_container.export("/tmp/anacostia-executor.tar")
             print(f"Exported image: {image}")
+        """
 
 
 def anacostia_pipeline(func):
@@ -87,7 +111,7 @@ async def pipeline():
 
     # initialize Dagger client
     async with dagger.Connection(config) as client:
-        component = await AnacostiaExecutor(port=12345, host_ip="192.168.0.172", client=client, export_image=True).create_container() 
+        component = await AnacostiaExecutor(inbound_port=8000, outbound_port=12345, client=client).create_container() 
 
     # see this tutorial for container-to-container networking with Dagger
     # https://docs.dagger.io/757394/use-service-containers

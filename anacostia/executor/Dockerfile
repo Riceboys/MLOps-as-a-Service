@@ -8,12 +8,14 @@ WORKDIR /app
 COPY requirements.txt .
 
 # Install the Python dependencies
+RUN pip install --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the Python script to the working directory
 COPY main.py .
 
 # Set the command to run the Python script
+#CMD ["nohup", "python", "-u", "main.py", "2>&1", "&"]
 CMD ["python", "main.py"]
 
 # display terminal outputs during image build (caching disabled):

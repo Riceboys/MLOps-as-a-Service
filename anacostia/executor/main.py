@@ -1,6 +1,7 @@
 import requests
 import os
 from flask import Flask
+import socket
 
 
 class Executor:
@@ -42,6 +43,10 @@ class Executor:
 
 
 if __name__ == "__main__":
+    hostname = socket.gethostname()
+    host_ip = socket.gethostbyname(hostname)
+    print(hostname)
+    print(host_ip)
 
     HOST_IP = os.getenv("HOST")
     INBOUND_PORT = os.getenv("IN_PORT")
