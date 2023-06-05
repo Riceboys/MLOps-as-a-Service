@@ -8,14 +8,8 @@ services:
     container_name: anacostia-executor-pipeline
     extra_hosts:  # this should allow the host.docker.internal command to work on linux
       - "host.docker.internal:host-gateway"
-      - "anacostia-executor:172.25.0.2"
-    ports:
-      - "12345:12345"
-      - "8000:8000"
-    environment:
-      - HOST=192.168.0.172
-      - IN_PORT=8000
-      - OUT_PORT=12345
+    volumes:    # the folder containing the socket file perhaps could be specified by the user?
+      - /tmp:/tmp
 
   mlflow-service:
     build:

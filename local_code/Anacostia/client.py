@@ -54,11 +54,7 @@ class AnacostiaExecutor(AnacostiaComponent):
         executor_container = await (
             self.client.container()
             .from_(self.image_link)
-            .with_exposed_port(self.inbound_port)
-            .with_exposed_port(self.outbound_port)
-            .with_env_variable("HOST", self.host_ip)
-            .with_env_variable("IN_PORT", f"{self.inbound_port}")
-            .with_env_variable("OUT_PORT", f"{self.outbound_port}")
+            .with_directory("/tmp", self.client.host().directory("/tmp"))  
         )
 
 

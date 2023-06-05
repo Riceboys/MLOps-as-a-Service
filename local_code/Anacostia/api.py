@@ -1,9 +1,10 @@
 from flask import Flask, request
+import os
 
+
+app = Flask(__name__)
 
 class MLOpsPipeline:
-
-    app = Flask(__name__)
 
     colors = {
         "HEADER": "\033[95m",
@@ -16,9 +17,10 @@ class MLOpsPipeline:
     }
 
 
-    def __init__(self, HOST='0.0.0.0', PORT=12345) -> None:
-        self.HOST = HOST
-        self.PORT = PORT
+    def __init__(self) -> None:
+        self.socket_path = 'unix:///tmp/anacostia-executor-outbound.sock'
+        if os.path.exists(self.socket_path):
+            os.remove(self.socket_path)
     
     def train(self, start_msg, end_msg, color):
         if color not in self.colors:
@@ -30,7 +32,7 @@ class MLOpsPipeline:
 
         def decorator(func):
 
-            @self.app.route('/train', methods=['POST'])
+            @app.route('/train', methods=['POST'])
             def train_wrapper(*args, **kwargs):
                 print(
                     "{}{}...{}".format(
@@ -67,7 +69,7 @@ class MLOpsPipeline:
 
         def decorator(func):
 
-            @self.app.route('/prepare-data', methods=['POST'])
+            @app.route('/prepare-data', methods=['POST'])
             def prepare_data_wrapper(*args, **kwargs):
                 print(
                     "{}{}...{}".format(
@@ -95,5 +97,11 @@ class MLOpsPipeline:
         return decorator
     
     def run(self):
-        self.app.run(host=self.HOST, port=self.PORT)
+        app.run(host=self.socket_path)
     
+
+if __name__ == "__main__":
+    pipeline = MLOpsPipeline()
+    pipeline.run()
+
+    #app.run(host="unix:///tmp/anacostia-executor-outbound.sock")

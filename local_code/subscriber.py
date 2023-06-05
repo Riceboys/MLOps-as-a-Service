@@ -14,4 +14,4 @@ if __name__ == '__main__':
         os.remove(outbound_socket_path)
 
     # Bind the Flask app to the Unix socket
-    app.run(host=outbound_socket_path, port=9000)
+    app.run(host=outbound_socket_path)
