@@ -3,7 +3,6 @@
 ## Tasks Completed
 - [X] Can automatically pull docker images from Docker Hub
 - [X] Can automatically deploy pulled docker images as running containers
-- [X] Can export docker images from Dagger environment into local Docker Engine
 - [X] Executor can trigger functions (designated as code for preparing data and training) on the host machine via Flask API
 
 ## TODO
