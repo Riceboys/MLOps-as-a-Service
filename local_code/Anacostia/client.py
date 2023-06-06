@@ -88,6 +88,3 @@ class AnacostiaExecutor(AnacostiaComponent):
 
 if __name__ == "__main__":
     executor = AnacostiaExecutor(host_inbound_port=8000, host_outbound_port=12345)
-    print(executor.host_inbound_port)
-    print(executor.host_outbound_port)
-    print(executor.host_ip)
