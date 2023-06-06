@@ -1,103 +1,90 @@
-import sys
-import anyio
-import dagger
+import docker
 import socket
-import functools
 
 
 class AnacostiaComponent:
-
-    def __init__(self, port: int, host_ip: str = None, export_image: bool = False) -> None:
-        if host_ip == None:
-            hostname = socket.gethostname()
-            self.host_ip = socket.gethostbyname(hostname)
-        else:
-            self.host_ip = host_ip
-
-        if self.is_port_in_use(port) == False:
-            self.port = port
+    def __init__(self) -> None:
+        pass
         
-        self.export_image = export_image
-        
-    def is_port_in_use(self, port: int) -> bool:
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            try:
-                s.bind((self.host_ip, port))
-                return False
-            except socket.error:
-                raise Exception(f"Port {port} is already in use, please assign a different port for this pipeline component.")
+    def find_available_port(self):
+        # Create a socket
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.bind(('localhost', 0))  # Bind to a random port on localhost
 
-    async def create_container(self):
-        raise NotImplementedError("Subclasses must implement abstract_method")
+        # Get the assigned port
+        _, port = sock.getsockname()
+
+        # Close the socket
+        sock.close()
+
+        return port
+    
+    def is_port_available(self, port):
+        try:
+            # Create a socket
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+            # Attempt to bind to the port
+            sock.bind(('localhost', port))
+
+            # Port is available
+            return True
+
+        except socket.error as e:
+            # Port is not available
+            return False
+
+        finally:
+            # Close the socket
+            sock.close()
 
 
 class AnacostiaExecutor(AnacostiaComponent):
-    
-    def __init__(
-        self, 
-        port: int, 
-        client: dagger.Client,
-        host_ip: str = None, 
-        export_image: bool = False, 
-        tag: str = "latest"
-    ) -> None:
+    def __init__(self, host_inbound_port=None, host_outbound_port=None) -> None:
+        hostname = socket.gethostname()
+        self.host_ip = socket.gethostbyname(hostname)
 
-        self.client = client
-        self.image_link = f"mdo6180/anacostia-executor:{tag}"
-        super().__init__(port, host_ip, export_image)
+        if host_inbound_port is not None:
+            if self.is_port_available(host_inbound_port) is True:
+                self.host_inbound_port = host_inbound_port
+            else:
+                raise Exception(f"Port {host_inbound_port} is not available, please select another port.")
+        else:
+            self.host_inbound_port = self.find_available_port()
+        
+        if host_outbound_port is not None:
+            self.host_outbound_port = host_outbound_port
+        else:
+            self.host_outbound_port = self.find_available_port()
 
-    async def create_container(self):
-        executor_container = (
-            self.client.container()
-            .from_(self.image_link)
-            .with_exposed_port(self.port)
-            .with_env_variable("HOST", self.host_ip)
-            .with_env_variable("PORT", f"{self.port}")
+        self.image_name = "mdo6180/anacostia-executor"
+        
+        client = docker.from_env()
+
+        # needs to pull images in the __init__() method
+        try:
+            client.images.get(self.image_name)
+
+        except docker.errors.ImageNotFound:
+            print(f"Pulling image {self.image_name} from Docker Hub.")
+            client.images.pull(self.image_name)
+            print(f"Done pulling image {self.image_name} from Docker Hub.")
+        
+        # needs to be ran in detach mode
+        client.containers.run(
+            image=self.image_name,
+            ports={
+                "8000":self.host_inbound_port,
+                "12345":self.host_outbound_port
+            },
+            environment=[
+                f"HOST={self.host_ip}",
+                f"IN_PORT={host_inbound_port}",
+                f"OUT_PORT={host_outbound_port}"
+            ],
+            detach=True
         )
 
-        # log output of container to terminal
-        await executor_container.stdout()
-
-        if self.export_image == True:
-            # export container image (pulled from Docker Hub and built by Dagger) to local Docker Engine 
-            # https://docs.dagger.io/252029/load-images-local-docker-engine
-            image = await executor_container.export("/tmp/anacostia-executor.tar")
-            print(f"Exported image: {image}")
-
-
-def anacostia_pipeline(func):
-
-    @functools.wraps(func)
-    def wrapper(*args, **kwargs):
-
-        async def run_async_func():
-            # Perform any pre-function logic asynchronously
-            print("Building your MLOps pipeline...")
-
-            # Call the original function asynchronously
-            result = await func(*args, **kwargs)
-
-            # Perform any post-function logic asynchronously
-            print("Done building MLOps pipeline.")
-
-            return result
-
-        # Run the decorated function asynchronously
-        return anyio.run(run_async_func)
-
-    return wrapper
-
-
-@anacostia_pipeline
-async def pipeline():
-    config = dagger.Config(log_output=sys.stdout)
-
-    # initialize Dagger client
-    async with dagger.Connection(config) as client:
-        component = await AnacostiaExecutor(port=12345, host_ip="192.168.0.172", client=client, export_image=True).create_container() 
-
-    # see this tutorial for container-to-container networking with Dagger
-    # https://docs.dagger.io/757394/use-service-containers
 
 if __name__ == "__main__":
-    pipeline()
+    executor = AnacostiaExecutor(host_inbound_port=8000, host_outbound_port=12345)

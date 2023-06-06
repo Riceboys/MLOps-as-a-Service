@@ -1,9 +1,8 @@
 import requests
 import os
 from flask import Flask
+import socket
 
-
-app = Flask(__name__)
 
 class Executor:
 
@@ -12,7 +11,6 @@ class Executor:
         self.PORT = PORT
         self.schedule = schedule
     
-    #@app.route("/train")
     def train(self):
         end_point = "train"
         external_server_url = f'http://{self.HOST}:{self.PORT}/{end_point}' 
@@ -22,11 +20,10 @@ class Executor:
         response = requests.post(external_server_url, data=command)
 
         if response.status_code == 200:
-            print('Train command sent successfully')
+            return 'Train command sent successfully\n'
         else:
-            print('Failed to send train command')
+            return 'Failed to send train command\n'
     
-    #@app.route("/prepare-data")
     def prepare_data(self):
         end_point = "prepare-data"
         external_server_url = f'http://{self.HOST}:{self.PORT}/{end_point}' 
@@ -35,47 +32,39 @@ class Executor:
         response = requests.post(external_server_url, data=command)
 
         if response.status_code == 200:
-            print('Prepare data command sent successfully')
+            return 'Prepare data command sent successfully\n'
         else:
-            print('Failed to send prepare-date command')
+            return 'Failed to send prepare-date command\n'
     
-    #@app.route("/all")
-    def run(self):
+    def run_all(self):
         self.prepare_data()
         self.train()
-    
-@app.route("/prepare", methods=["POST"])
-def prepare_data():
+        return "all steps executed successfully\n"
 
-    print("hello there lady")
-
-    """
-    end_point = "prepare-data"
-    external_server_url = f'http://127.0.0.1:12345/{end_point}' 
-
-    command = 'prepare data for training'
-    response = requests.post(external_server_url, data=command)
-
-    if response.status_code == 200:
-        print('Prepare data command sent successfully')
-    else:
-        print('Failed to send prepare-date command')
-
-    """
-    return "/prepare-data executed sucessfully"
 
 if __name__ == "__main__":
+    hostname = socket.gethostname()
+    host_ip = socket.gethostbyname(hostname)
+    print(hostname)
+    print(host_ip)
 
     HOST_IP = os.getenv("HOST")
-    PORT = os.getenv("PORT")
+    INBOUND_PORT = os.getenv("IN_PORT")
+    OUTBOUND_PORT = os.getenv("OUT_PORT")
 
     print(HOST_IP)
-    print(PORT)
+    print(INBOUND_PORT)
+    print(OUTBOUND_PORT)
     
     executor = Executor(
         HOST=HOST_IP,
-        PORT=PORT,
+        PORT=OUTBOUND_PORT,
     )
 
-    app.run(host='172.25.0.2', port=12345)
-    #executor.run()
+    app = Flask(__name__)
+
+    app.add_url_rule("/execute-prepare", view_func=executor.prepare_data, methods=["POST"])
+    app.add_url_rule("/execute-train", view_func=executor.train, methods=["POST"])
+    app.add_url_rule("/execute-all", view_func=executor.run_all, methods=["POST"])
+
+    app.run(host='0.0.0.0', port=INBOUND_PORT)

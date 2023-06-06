@@ -11,14 +11,11 @@ services:
       - "anacostia-executor:172.25.0.2"
     ports:
       - "12345:12345"
-      - "12346:12346"
+      - "8000:8000"
     environment:
       - HOST=192.168.0.172
-      - PORT=12345
-    networks:
-      anacostia-network:
-        aliases:
-          - anacostia-executor
+      - IN_PORT=8000
+      - OUT_PORT=12345
 
   mlflow-service:
     build:
@@ -39,15 +36,8 @@ services:
     container_name: toy-executor-pipeline
     ports:
       - "8080:8080"
-      - "12345:12345"
-    networks:
-      anacostia-network:
-        aliases:
-          - toy
+      - "8000:8000"
 
-networks:
-  anacostia-network:
-    driver: bridge
 
 # build and run all image:
 # $ docker-compose up --build
