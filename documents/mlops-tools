@@ -27,5 +27,11 @@ KServe:
 Triton: 
 
 FEAST: 
+    - open source feature store (is this now obsolete due to vector databases)
 
 KubeFlow:
+
+vector databases:
+    - milvus
+    - pinecone
+    - https://towardsdatascience.com/milvus-pinecone-vespa-weaviate-vald-gsi-what-unites-these-buzz-words-and-what-makes-each-9c65a3bd0696
