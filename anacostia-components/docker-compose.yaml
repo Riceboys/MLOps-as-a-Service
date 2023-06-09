@@ -17,28 +17,6 @@ services:
       - IN_PORT=8000
       - OUT_PORT=12345
 
-  mlflow-service:
-    build:
-      context: ./mlflow
-      dockerfile: Dockerfile
-    image: mlflow-image
-    container_name: mlflow-container
-    extra_hosts:  # this should allow the host.docker.internal command to work on linux
-      - "host.docker.internal:host-gateway"
-    ports:
-      - "12345:12345"
-
-  toy:
-    build:
-      context: ./toy
-      dockerfile: Dockerfile
-    image: mdo6180/toy-executor
-    container_name: toy-executor-pipeline
-    ports:
-      - "8080:8080"
-      - "8000:8000"
-
-
 # build and run all image:
 # $ docker-compose up --build
 
