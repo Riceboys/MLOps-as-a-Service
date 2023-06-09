@@ -1,6 +1,7 @@
 import docker
 import socket
 import time
+import subprocess
 
 
 global running
@@ -22,21 +23,44 @@ class AnacostiaComponent:
 
         return port
     
-    def check_internet_connection(self):
-        try:
-            # Attempt to establish a connection to a well-known remote server (e.g., Google DNS)
-            socket.create_connection(("8.8.8.8", 53), timeout=5)
-            return True
-        except socket.error:
-            return False
+    def establish_connection(self) -> str:
+
+        def format_time(seconds):
+            minutes = seconds // 60
+            seconds = seconds % 60
+            return f"{minutes:02d}:{seconds:02d}"
     
-    def loading_animation():
-        animation = "|/-\\"
-        i = 0
-        while True:
-            time.sleep(0.1)
-            print(f"\rLoading {animation[i % len(animation)]}", end="", flush=True)
-            i += 1
+        start_time = time.time()
+        elapsed_time = 0
+        ip_address = None
+
+        while ip_address is None:
+
+            ip_address = self.get_ip_address()
+
+            time.sleep(0.5)
+            elapsed_time = int(time.time() - start_time)
+            formatted_time = format_time(elapsed_time)
+            print(f"\rTrying to establish connection {formatted_time}", end="", flush=True)
+        
+        print(f"\nEstablished connection to host IP: {ip_address}")
+        return ip_address
+
+    def get_ip_address(self):
+        command = "ifconfig | grep 'inet ' | grep -v 127.0.0.1 | awk '{print $2}'"
+
+        try:
+            output = subprocess.check_output(command, shell=True)
+            ip_address = output.decode('utf-8').strip()
+
+            if ip_address == "":
+                return None
+            else:
+                return ip_address
+
+        except subprocess.CalledProcessError as e:
+            print(f"Command execution failed: {e}")
+            return None
 
     def is_port_available(self, port):
         try:
@@ -60,30 +84,7 @@ class AnacostiaComponent:
 
 class AnacostiaExecutor(AnacostiaComponent):
     def __init__(self, host_inbound_port=None, host_outbound_port=None) -> None:
-
-        hostname = socket.gethostname()
-        print(f"Host name is '{hostname}")
-
-        result = socket.getaddrinfo(hostname, None, socket.AF_INET, socket.SOCK_STREAM)
-        self.host_ip = result[0][4][0]
-        print(f"Waiting to establish connection, host IP: {self.host_ip}")
-
-        animation = "|/-\\"
-        i = 0
-        while True:
-
-            try:
-                result = socket.getaddrinfo(hostname, None, socket.AF_INET, socket.SOCK_STREAM)
-                self.host_ip = result[0][4][0]
-            except socket.gaierror as e:
-                time.sleep(0.1)
-                print(f"\rLoading {animation[i % len(animation)]}", end=" ", flush=True)
-                i += 1
-
-            if self.host_ip != "127.0.0.1":
-                break
-
-        print(f"\nEstablish connection to host IP: {self.host_ip}")
+        host_ip = self.establish_connection()
 
         if host_inbound_port is not None:
             if self.is_port_available(host_inbound_port) is True:
@@ -111,25 +112,21 @@ class AnacostiaExecutor(AnacostiaComponent):
             client.images.pull(self.image_name)
             print(f"Done pulling image {self.image_name} from Docker Hub.")
         
-        if self.check_internet_connection() is False:
-            raise Exception("No internet connection, please connect to the internet and try again.")
-        else:
-            # needs to be ran in detach mode
-            client.containers.run(
-                image=self.image_name,
-                ports={
-                    "8000":self.host_inbound_port,
-                    "12345":self.host_outbound_port
-                },
-                environment=[
-                    f"HOST={self.host_ip}",
-                    f"IN_PORT={host_inbound_port}",
-                    f"OUT_PORT={host_outbound_port}"
-                ],
-                detach=True
-            )
+        # needs to be ran in detach mode
+        client.containers.run(
+            image=self.image_name,
+            ports={
+                "8000":self.host_inbound_port,
+                "12345":self.host_outbound_port
+            },
+            environment=[
+                f"HOST={host_ip}",
+                f"IN_PORT={host_inbound_port}",
+                f"OUT_PORT={host_outbound_port}"
+            ],
+            detach=True
+        )
         
-
 
 if __name__ == "__main__":
     executor = AnacostiaExecutor(host_inbound_port=8000, host_outbound_port=12345)
