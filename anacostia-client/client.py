@@ -1,6 +1,9 @@
 import docker
 import socket
+import time
 
+
+global running
 
 class AnacostiaComponent:
     def __init__(self) -> None:
@@ -19,6 +22,22 @@ class AnacostiaComponent:
 
         return port
     
+    def check_internet_connection(self):
+        try:
+            # Attempt to establish a connection to a well-known remote server (e.g., Google DNS)
+            socket.create_connection(("8.8.8.8", 53), timeout=5)
+            return True
+        except socket.error:
+            return False
+    
+    def loading_animation():
+        animation = "|/-\\"
+        i = 0
+        while True:
+            time.sleep(0.1)
+            print(f"\rLoading {animation[i % len(animation)]}", end="", flush=True)
+            i += 1
+
     def is_port_available(self, port):
         try:
             # Create a socket
@@ -41,8 +60,30 @@ class AnacostiaComponent:
 
 class AnacostiaExecutor(AnacostiaComponent):
     def __init__(self, host_inbound_port=None, host_outbound_port=None) -> None:
+
         hostname = socket.gethostname()
-        self.host_ip = socket.gethostbyname(hostname)
+        print(f"Host name is '{hostname}")
+
+        result = socket.getaddrinfo(hostname, None, socket.AF_INET, socket.SOCK_STREAM)
+        self.host_ip = result[0][4][0]
+        print(f"Waiting to establish connection, host IP: {self.host_ip}")
+
+        animation = "|/-\\"
+        i = 0
+        while True:
+
+            try:
+                result = socket.getaddrinfo(hostname, None, socket.AF_INET, socket.SOCK_STREAM)
+                self.host_ip = result[0][4][0]
+            except socket.gaierror as e:
+                time.sleep(0.1)
+                print(f"\rLoading {animation[i % len(animation)]}", end=" ", flush=True)
+                i += 1
+
+            if self.host_ip != "127.0.0.1":
+                break
+
+        print(f"\nEstablish connection to host IP: {self.host_ip}")
 
         if host_inbound_port is not None:
             if self.is_port_available(host_inbound_port) is True:
@@ -70,20 +111,24 @@ class AnacostiaExecutor(AnacostiaComponent):
             client.images.pull(self.image_name)
             print(f"Done pulling image {self.image_name} from Docker Hub.")
         
-        # needs to be ran in detach mode
-        client.containers.run(
-            image=self.image_name,
-            ports={
-                "8000":self.host_inbound_port,
-                "12345":self.host_outbound_port
-            },
-            environment=[
-                f"HOST={self.host_ip}",
-                f"IN_PORT={host_inbound_port}",
-                f"OUT_PORT={host_outbound_port}"
-            ],
-            detach=True
-        )
+        if self.check_internet_connection() is False:
+            raise Exception("No internet connection, please connect to the internet and try again.")
+        else:
+            # needs to be ran in detach mode
+            client.containers.run(
+                image=self.image_name,
+                ports={
+                    "8000":self.host_inbound_port,
+                    "12345":self.host_outbound_port
+                },
+                environment=[
+                    f"HOST={self.host_ip}",
+                    f"IN_PORT={host_inbound_port}",
+                    f"OUT_PORT={host_outbound_port}"
+                ],
+                detach=True
+            )
+        
 
 
 if __name__ == "__main__":

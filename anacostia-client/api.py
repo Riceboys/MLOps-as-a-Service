@@ -1,7 +1,9 @@
 from flask import Flask, request
 
+global running
 
-class MLOpsPipeline:
+
+class AnacostiaPipeline:
 
     app = Flask(__name__)
 
@@ -16,7 +18,7 @@ class MLOpsPipeline:
     }
 
 
-    def __init__(self, HOST='0.0.0.0', PORT=12345) -> None:
+    def __init__(self, HOST: str = '0.0.0.0', PORT: int = 12345) -> None:
         self.HOST = HOST
         self.PORT = PORT
     
