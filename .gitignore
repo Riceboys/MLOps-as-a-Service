@@ -5,3 +5,5 @@ mlvenv/
 .vscode/
 .env
 __pycache__/
+demos/data/
+junk/
