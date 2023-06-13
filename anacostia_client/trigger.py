@@ -6,6 +6,7 @@ from anacostia_client import scheduler, lock
 from apscheduler.triggers.base import BaseTrigger
 from apscheduler.triggers.interval import IntervalTrigger
 from collections.abc import Callable
+from multiprocessing import Process
 
 
 class AnacostiaBaseTrigger:
@@ -47,12 +48,11 @@ class AnacostiaBaseTrigger:
                 self.trigger_result = True
 
     def run(self):
-        scheduler.start()
-
         try:
             while True:
                 with lock:
                     if self.trigger_result:
+                        # we're pausing the trigger to allow the action functions to run
                         self.trigger_result = False
                         scheduler.pause_job(self.trigger_name)
 
@@ -76,13 +76,30 @@ class AnacostiaBaseTrigger:
                             )
                         )
 
+                        # once action functions are done, we're resuming the trigger running as scheduled
                         scheduler.resume_job(self.trigger_name)
                         
-        except (KeyboardInterrupt, SystemExit):
+        except (KeyboardInterrupt):
             # Not strictly necessary if daemonic mode is enabled but should be done if possible
+            user_input = input("\nAre you sure you want to stop the trigger? (y/n): ")
+            if user_input == "y":
+                user_input = input("Do you want to stop all pipeline steps? (y/n): ")
+                if user_input == "y":
+                    scheduler.remove_job(self.trigger_name)
+                    scheduler.shutdown()
+                    print(f"\nTrigger {self.trigger_name} stopped")
+                    sys.exit(0)
+                else:
+                    pass
+        except (SystemExit):
+            scheduler.remove_job(self.trigger_name)
             scheduler.shutdown()
             print(f"\nTrigger {self.trigger_name} stopped")
+            sys.exit(0)
 
+    def __call__(self):
+        proc = Process(target=self.run, daemon=True)
+        proc.start()
 
 import random
 import time
@@ -116,4 +133,5 @@ if __name__ == '__main__':
         action_functions=[prepare_data, train_model, validate_model],
         task_description="Run training pipeline"
     )
+    scheduler.start()
     train_trigger.run()
