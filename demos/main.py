@@ -1,5 +1,5 @@
 import sys
-sys.path.append("../anacostia-client")
+sys.path.append("../anacostia_client")
 import os
 
 from api import AnacostiaPipeline
