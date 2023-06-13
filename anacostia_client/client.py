@@ -47,6 +47,7 @@ class AnacostiaComponent:
         return ip_address
 
     def get_ip_address(self):
+        # note that on linux, ifconfig is deprecated and ip addr is the new command
         command = "ifconfig | grep 'inet ' | grep -v 127.0.0.1 | awk '{print $2}'"
 
         try:

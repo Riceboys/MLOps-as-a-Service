@@ -8,19 +8,34 @@ from apscheduler.triggers.interval import IntervalTrigger
 from collections.abc import Callable
 
 
-class AnacostiaTrigger:
+class AnacostiaBaseTrigger:
+    colors = {
+        "HEADER": "\033[95m",
+        "OKBLUE": "\033[94m",
+        "OKCYAN": "\033[96m",
+        "OKGREEN": "\033[92m",
+        "WARNING": "\033[93m",
+        "FAIL": "\033[91m",
+        "ENDC": "\033[0m"
+    }
+
     def __init__(
             self, 
             trigger_name: str,  
             stages: list[str] | str = "all",
             trigger_schedule: BaseTrigger = IntervalTrigger(seconds=1),
-            trigger_function: Callable[..., bool] = None
+            trigger_function: Callable[..., bool] = None,
+            action_functions: list[Callable[..., any]] = None,
+            task_description: str = None
         ) -> None:
         
         self.trigger_name = trigger_name
         self.trigger_schedule = trigger_schedule
         self.trigger_result = False
         self.trigger_function = trigger_function
+        self.action_functions = action_functions
+        self.task_description = task_description
+
         scheduler.add_job(self.wrapper, self.trigger_schedule, id=self.trigger_name)
         print(f"Trigger {self.trigger_name} is running")
     
@@ -33,16 +48,36 @@ class AnacostiaTrigger:
 
     def run(self):
         scheduler.start()
-        print('Press Ctrl+{0} to exit'.format('Break' if os.name == 'nt' else 'C'))
 
         try:
             while True:
                 with lock:
                     if self.trigger_result:
-                        # replace the following print statement with function to trigger endpoint
-                        print(f"{self.trigger_name} triggered")
                         self.trigger_result = False
+                        scheduler.pause_job(self.trigger_name)
 
+                        print('Press Ctrl+{0} to exit'.format('Break' if os.name == 'nt' else 'C'))
+                        print(
+                            "{}{} started...{}".format(
+                                self.colors["OKGREEN"],
+                                self.task_description,
+                                self.colors["ENDC"]
+                            )
+                        )
+
+                        for func in self.action_functions:
+                            func()
+                        
+                        print(
+                            "{}{} ended...{}".format(
+                                self.colors["OKGREEN"],
+                                self.task_description,
+                                self.colors["ENDC"]
+                            )
+                        )
+
+                        scheduler.resume_job(self.trigger_name)
+                        
         except (KeyboardInterrupt, SystemExit):
             # Not strictly necessary if daemonic mode is enabled but should be done if possible
             scheduler.shutdown()
@@ -50,6 +85,7 @@ class AnacostiaTrigger:
 
 
 import random
+import time
 
 def trigger_func() -> bool:
     num = random.randint(1, 10)
@@ -60,10 +96,24 @@ def trigger_func() -> bool:
         print(f"random number > 5: {num}")
         return False
 
+def prepare_data():
+    time.sleep(5)
+    print("data preparation in progress...")
+
+def train_model():
+    time.sleep(5)
+    print("model training in progress...")
+
+def validate_model():
+    time.sleep(5)
+    print("model validation in progress...")
+
 if __name__ == '__main__':
-    train_trigger = AnacostiaTrigger(
-        "train_trigger", 
+    train_trigger = AnacostiaBaseTrigger(
+        "pipeline_trigger", 
         trigger_schedule=IntervalTrigger(seconds=3), 
-        trigger_function=trigger_func
+        trigger_function=trigger_func,
+        action_functions=[prepare_data, train_model, validate_model],
+        task_description="Run training pipeline"
     )
     train_trigger.run()
