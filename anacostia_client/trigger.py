@@ -1,7 +1,7 @@
 import os
 import sys
 sys.path.append("..")
-from anacostia_client import scheduler, lock
+from anacostia_client import scheduler, lock, colors
 
 from apscheduler.triggers.base import BaseTrigger
 from apscheduler.triggers.interval import IntervalTrigger
@@ -10,20 +10,10 @@ from multiprocessing import Process
 
 
 class AnacostiaBaseTrigger:
-    colors = {
-        "HEADER": "\033[95m",
-        "OKBLUE": "\033[94m",
-        "OKCYAN": "\033[96m",
-        "OKGREEN": "\033[92m",
-        "WARNING": "\033[93m",
-        "FAIL": "\033[91m",
-        "ENDC": "\033[0m"
-    }
 
     def __init__(
             self, 
             trigger_name: str,  
-            stages: list[str] | str = "all",
             trigger_schedule: BaseTrigger = IntervalTrigger(seconds=1),
             trigger_function: Callable[..., bool] = None,
             action_functions: list[Callable[..., any]] = None,
@@ -59,9 +49,9 @@ class AnacostiaBaseTrigger:
                         print('Press Ctrl+{0} to exit'.format('Break' if os.name == 'nt' else 'C'))
                         print(
                             "{}{} started...{}".format(
-                                self.colors["OKGREEN"],
+                                colors["OKGREEN"],
                                 self.task_description,
-                                self.colors["ENDC"]
+                                colors["ENDC"]
                             )
                         )
 
@@ -70,9 +60,9 @@ class AnacostiaBaseTrigger:
                         
                         print(
                             "{}{} ended...{}".format(
-                                self.colors["OKGREEN"],
+                                colors["OKGREEN"],
                                 self.task_description,
-                                self.colors["ENDC"]
+                                colors["ENDC"]
                             )
                         )
 
@@ -80,17 +70,30 @@ class AnacostiaBaseTrigger:
                         scheduler.resume_job(self.trigger_name)
                         
         except (KeyboardInterrupt):
+            scheduler.pause_job(self.trigger_name)
+
             # Not strictly necessary if daemonic mode is enabled but should be done if possible
-            user_input = input("\nAre you sure you want to stop the trigger? (y/n): ")
+            user_input = input(f"\nAre you sure you want to stop the {self.trigger_name} trigger? (y/n): ")
             if user_input == "y":
-                user_input = input("Do you want to stop all pipeline steps? (y/n): ")
-                if user_input == "y":
+
+                user_input = input(f"Enter (1) for hard stop, enter (2) for soft stop, enter any other character to abort: ")
+                if user_input == "1":
+
                     scheduler.remove_job(self.trigger_name)
                     scheduler.shutdown()
                     print(f"\nTrigger {self.trigger_name} stopped")
                     sys.exit(0)
-                else:
+
+                elif user_input == "2":
                     pass
+
+                else:
+                    scheduler.resume_job(self.trigger_name)
+                    print(f"\nTrigger {self.trigger_name} resumed")
+            else:
+                scheduler.resume_job(self.trigger_name)
+                print(f"\nTrigger {self.trigger_name} resumed")
+
         except (SystemExit):
             scheduler.remove_job(self.trigger_name)
             scheduler.shutdown()
@@ -100,6 +103,8 @@ class AnacostiaBaseTrigger:
     def __call__(self):
         proc = Process(target=self.run, daemon=True)
         proc.start()
+
+
 
 import random
 import time
