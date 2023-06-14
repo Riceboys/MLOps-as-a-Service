@@ -22,11 +22,13 @@ class AnacostiaBaseTrigger:
         
         self.trigger_name = trigger_name
         self.trigger_schedule = trigger_schedule
-        self.trigger_result = False
         self.trigger_function = trigger_function
         self.action_functions = action_functions
         self.task_description = task_description
 
+        self.trigger_result = False
+        self.action_functions_status = 0
+        
         scheduler.add_job(self.wrapper, self.trigger_schedule, id=self.trigger_name)
         print(f"Trigger {self.trigger_name} is running")
     
@@ -38,10 +40,13 @@ class AnacostiaBaseTrigger:
                 self.trigger_result = True
 
     def run(self):
-        try:
-            while True:
+        while True:
+            try:
                 with lock:
+
+                    # if the trigger function returns True, we're executing the action functions
                     if self.trigger_result:
+
                         # we're pausing the trigger to allow the action functions to run
                         self.trigger_result = False
                         scheduler.pause_job(self.trigger_name)
@@ -55,6 +60,7 @@ class AnacostiaBaseTrigger:
                             )
                         )
 
+                        # executing the action functions
                         for func in self.action_functions:
                             func()
                         
@@ -68,37 +74,31 @@ class AnacostiaBaseTrigger:
 
                         # once action functions are done, we're resuming the trigger running as scheduled
                         scheduler.resume_job(self.trigger_name)
-                        
-        except (KeyboardInterrupt):
-            scheduler.pause_job(self.trigger_name)
 
-            # Not strictly necessary if daemonic mode is enabled but should be done if possible
-            user_input = input(f"\nAre you sure you want to stop the {self.trigger_name} trigger? (y/n): ")
-            if user_input == "y":
+            except (KeyboardInterrupt):
+                scheduler.pause_job(self.trigger_name)
 
-                user_input = input(f"Enter (1) for hard stop, enter (2) for soft stop, enter any other character to abort: ")
-                if user_input == "1":
+                # Not strictly necessary if daemonic mode is enabled but should be done if possible
+                user_input = input(f"\nAre you sure you want to stop the {self.trigger_name} trigger? (y/n): ")
+                if user_input == "y":
 
-                    scheduler.remove_job(self.trigger_name)
-                    scheduler.shutdown()
-                    print(f"\nTrigger {self.trigger_name} stopped")
-                    sys.exit(0)
+                    user_input = input(f"Enter (1) for hard stop, enter (2) for soft stop, press Enter to abort: ")
+                    if user_input == "1":
 
-                elif user_input == "2":
-                    pass
+                        scheduler.remove_job(self.trigger_name)
+                        scheduler.shutdown()
+                        print(f"\nTrigger {self.trigger_name} stopped")
+                        sys.exit(0)
 
+                    elif user_input == "2":
+                        pass
+
+                    else:
+                        scheduler.resume_job(self.trigger_name)
+                        print(f"\nTrigger {self.trigger_name} resumed")
                 else:
                     scheduler.resume_job(self.trigger_name)
                     print(f"\nTrigger {self.trigger_name} resumed")
-            else:
-                scheduler.resume_job(self.trigger_name)
-                print(f"\nTrigger {self.trigger_name} resumed")
-
-        except (SystemExit):
-            scheduler.remove_job(self.trigger_name)
-            scheduler.shutdown()
-            print(f"\nTrigger {self.trigger_name} stopped")
-            sys.exit(0)
 
     def __call__(self):
         proc = Process(target=self.run, daemon=True)
