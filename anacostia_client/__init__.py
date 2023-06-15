@@ -1,5 +1,6 @@
 import api
 import client
+import trigger
 from apscheduler.schedulers.background import BackgroundScheduler
 from threading import Lock
 
