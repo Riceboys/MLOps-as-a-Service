@@ -4,8 +4,6 @@ import time
 import subprocess
 
 
-global running
-
 class AnacostiaComponent:
     def __init__(self) -> None:
         pass
