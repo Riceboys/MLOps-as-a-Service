@@ -17,6 +17,17 @@ services:
       - IN_PORT=8000
       - OUT_PORT=12345
 
+  mlflow:
+    build:
+      context: ./mlflow
+      dockerfile: Dockerfile
+    image: mdo6180/mlflow
+    container_name: mlflow-component
+    ports:
+      - "8000:5000"
+    volumes:
+      - ./storage:/app/storage
+
 # build and run all image:
 # $ docker-compose up --build
 
