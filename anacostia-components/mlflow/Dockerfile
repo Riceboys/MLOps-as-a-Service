@@ -1,14 +1,10 @@
-FROM python:3.11-slim
+FROM ghcr.io/mlflow/mlflow:latest
 
 WORKDIR /app
 
 COPY requirements.txt .
 
-RUN pip install --upgrade pip
-RUN pip install --no-cache-dir -r requirements.txt
+ENV BACKEND_URI file:///app/storage
+ENV ARTIFACT_ROOT /app/storage
 
-# Copy the Python script to the working directory
-COPY main.py .
-
-# Set the command to run the Python script
-CMD ["python", "main.py"]
+CMD mlflow server --backend-store-uri ${BACKEND_URI} --default-artifact-root ${ARTIFACT_ROOT} --host 0.0.0.0 --port 5000
