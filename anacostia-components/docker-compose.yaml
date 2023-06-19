@@ -1,28 +1,11 @@
 version: '3'
 services:
-  executor:
-    build:
-      context: ./executor
-      dockerfile: Dockerfile
-    image: mdo6180/anacostia-executor
-    container_name: anacostia-executor-pipeline
-    extra_hosts:  # this should allow the host.docker.internal command to work on linux
-      - "host.docker.internal:host-gateway"
-      - "anacostia-executor:172.25.0.2"
-    ports:
-      - "12345:12345"
-      - "8000:8000"
-    environment:
-      - HOST=192.168.0.172
-      - IN_PORT=8000
-      - OUT_PORT=12345
-
   mlflow:
     build:
       context: ./mlflow
       dockerfile: Dockerfile
     image: mdo6180/mlflow
-    container_name: mlflow-component
+    container_name: mlflow-test
     ports:
       - "8000:5000"
     volumes:

@@ -1,6 +1,7 @@
 import socket
 import subprocess
 import time
+import docker
 
 
 def find_available_port():
@@ -72,3 +73,12 @@ def is_port_available(port):
     finally:
         # Close the socket
         sock.close()
+
+def is_container_running(container_name: str):
+    client = docker.from_env()
+
+    try:
+        container = client.containers.get(container_name)
+        return container.status == "running"
+    except docker.errors.NotFound:
+        return False
