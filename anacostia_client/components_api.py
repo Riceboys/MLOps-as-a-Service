@@ -3,6 +3,8 @@ from utils import *
 import requests
 import json
 import os
+import time
+from typing import List, Dict, Any
 
 
 class AnacostiaComponent(object):
@@ -122,7 +124,80 @@ class MLflowComponent(AnacostiaComponent):
 
         if response != {}:
             print(response)
+    
+    def create_run(self, experiment_id: str, run_name: str) -> str:
+        url = f"{self.url}/api/2.0/mlflow/runs/create"
+
+        # in the future, we might just want to pass in a dictionary of parameters
+        parameters = {
+            "experiment_id": experiment_id, 
+            "run_name": run_name,
+            "start_time": int(time.time() * 1000)
+        }
+
+        response = requests.post(url, json=parameters)
+        response = json.loads(response.text)
+
+        run_id = response["run"]["info"]["run_id"]
+        return run_id
+    
+    def get_run(self, run_id: str) -> json:
+        url = f"{self.url}/api/2.0/mlflow/runs/get"
+
+        # in the future, we might just want to pass in a dictionary of parameters
+        parameters = {"run_id": run_id}
+
+        response = requests.get(url, json=parameters)
+        response = json.loads(response.text)
+        return response
+    
+    def delete_run(self, run_id: str) -> None:
+        url = f"{self.url}/api/2.0/mlflow/runs/delete"
+
+        # in the future, we might just want to pass in a dictionary of parameters
+        parameters = {"run_id": run_id}
+
+        response = requests.post(url, json=parameters)
+        response = json.loads(response.text)
+
+        if response != {}:
+            print(response)
+    
+    def restore_run(self, run_id: str) -> None:
+        url = f"{self.url}/api/2.0/mlflow/runs/restore"
+
+        # in the future, we might just want to pass in a dictionary of parameters
+        parameters = {"run_id": run_id}
+
+        response = requests.post(url, json=parameters)
+        response = json.loads(response.text)
+
+        if response != {}:
+            print(response)
+
+    def log_metrics(self, run_id: str, **kwargs) -> None:
+        url = f"{self.url}/api/2.0/mlflow/runs/log-batch"
+
+        metrics = []
+        for key, value in kwargs.items():
+            metrics.append({"key": key, "value": value, "timestamp": int(time.time() * 1000)})
+
+        payload = {
+            "run_id": run_id,
+            "metrics": metrics,
+        }
+
+        response = requests.post(url, json=payload)
+        response = json.loads(response.text)
+
+        if response != {}:
+            print(response)
 
 if __name__ == "__main__":
     component = MLflowComponent(8080, "../anacostia-components/storage")
-    component.update_experiment("208329568278108006", "test7")
+    component.restore_run("4d6f7387b1714494913fd8fdadec4fd4")
+    component.log_metrics(
+        "4d6f7387b1714494913fd8fdadec4fd4",
+        mae=2.8,
+        rmse=2.9,
+    )
