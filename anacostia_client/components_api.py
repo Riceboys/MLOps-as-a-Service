@@ -48,7 +48,7 @@ class MLflowComponent(AnacostiaComponent):
                 name=CONTAINER_NAME,
                 image=self.image_name, 
                 ports={
-                    CONTAINER_PORT:f"{self.host_port}" 
+                    CONTAINER_PORT:str(self.host_port)
                 },
                 environment={
                     "BACKEND_STORE_URI": BACKEND_STORE_URI,
@@ -62,8 +62,10 @@ class MLflowComponent(AnacostiaComponent):
             )
 
             print(f"Container {CONTAINER_NAME} is running on port {self.host_port}.")
+            print(f"MLflow Tracking UI can be accessed at http://localhost:{self.host_port}")
         else:
             print(f"Container {CONTAINER_NAME} is already running on port {self.host_port}.")
+            print(f"MLflow Tracking UI can be accessed at http://localhost:{self.host_port}")
 
     def create_experiment(self, name: str) -> str:
         url = f"{self.url}/api/2.0/mlflow/experiments/create"
@@ -85,8 +87,42 @@ class MLflowComponent(AnacostiaComponent):
         response = json.loads(response.text)
         return response
 
+    def delete_experiment(self, experiment_id: str) -> None:
+        url = f"{self.url}/api/2.0/mlflow/experiments/delete"
+
+        # in the future, we might just want to pass in a dictionary of parameters
+        parameters = {"experiment_id": experiment_id}
+
+        response = requests.post(url, json=parameters)
+        response = json.loads(response.text)
+
+        if response != {}:
+            print(response)
+    
+    def restore_experiment(self, experiment_id: str) -> None:
+        url = f"{self.url}/api/2.0/mlflow/experiments/restore"
+
+        # in the future, we might just want to pass in a dictionary of parameters
+        parameters = {"experiment_id": experiment_id}
+
+        response = requests.post(url, json=parameters)
+        response = json.loads(response.text)
+
+        if response != {}:
+            print(response)
+    
+    def update_experiment(self, experiment_id: str, new_name: str) -> None:
+        url = f"{self.url}/api/2.0/mlflow/experiments/update"
+
+        # in the future, we might just want to pass in a dictionary of parameters
+        parameters = {"experiment_id": experiment_id, "new_name": new_name}
+
+        response = requests.post(url, json=parameters)
+        response = json.loads(response.text)
+
+        if response != {}:
+            print(response)
 
 if __name__ == "__main__":
     component = MLflowComponent(8080, "../anacostia-components/storage")
-    experiment_id = component.create_experiment("test")
-    print(component.get_experiment(experiment_id))
+    component.update_experiment("208329568278108006", "test7")
