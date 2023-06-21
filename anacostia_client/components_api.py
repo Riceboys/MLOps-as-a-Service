@@ -180,6 +180,7 @@ class MLflowComponent(AnacostiaComponent):
 
         metrics = []
         for key, value in kwargs.items():
+            # TODO: possibly add support for recording step number
             metrics.append({"key": key, "value": value, "timestamp": int(time.time() * 1000)})
 
         payload = {
@@ -192,12 +193,63 @@ class MLflowComponent(AnacostiaComponent):
 
         if response != {}:
             print(response)
+    
+    def log_params(self, run_id: str, **kwargs) -> None:
+        url = f"{self.url}/api/2.0/mlflow/runs/log-batch"
+
+        params = []
+        for key, value in kwargs.items():
+            params.append({"key": key, "value": str(value)})
+
+        payload = {
+            "run_id": run_id,
+            "params": params,
+        }
+
+        response = requests.post(url, json=payload)
+        response = json.loads(response.text)
+
+        if response != {}:
+            print(response)
+    
+    def set_tags(self, run_id: str, **kwargs) -> None:
+        url = f"{self.url}/api/2.0/mlflow/runs/log-batch"
+
+        tags = []
+        for key, value in kwargs.items():
+            tags.append({"key": key, "value": str(value)})
+
+        payload = {
+            "run_id": run_id,
+            "tags": tags,
+        }
+
+        response = requests.post(url, json=payload)
+        response = json.loads(response.text)
+
+        if response != {}:
+            print(response)
+    
+    def delete_tags(self, run_id: str, tags: List[str]) -> None:
+        url = f"{self.url}/api/2.0/mlflow/runs/delete-tag"
+
+        for tag in tags:
+            payload = {
+                "run_id": run_id,
+                "key": tag,
+            }
+
+            response = requests.post(url, json=payload)
+            response = json.loads(response.text)
+
+            if response != {}:
+                print(response)
+
 
 if __name__ == "__main__":
     component = MLflowComponent(8080, "../anacostia-components/storage")
-    component.restore_run("4d6f7387b1714494913fd8fdadec4fd4")
-    component.log_metrics(
+    
+    component.delete_tags(
         "4d6f7387b1714494913fd8fdadec4fd4",
-        mae=2.8,
-        rmse=2.9,
+        ["tag1", "tag2"]
     )
