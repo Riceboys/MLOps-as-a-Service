@@ -1,12 +1,13 @@
 from trigger import AnacostiaBaseTrigger
-from client import AnacostiaComponent
+from components_api import AnacostiaComponent
 from constants import scheduler
 import sys
 import os
+from typing import List
 
 
 class AnacostiaPipeline(object):
-    def __init__(self, components: list[AnacostiaComponent], triggers: list[AnacostiaBaseTrigger]) -> None:
+    def __init__(self, components: List[AnacostiaComponent], triggers: list[AnacostiaBaseTrigger]) -> None:
         self.triggers = triggers
         self.components = components
         scheduler.start()

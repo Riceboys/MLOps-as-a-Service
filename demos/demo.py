@@ -38,7 +38,7 @@ if __name__ == '__main__':
     train_trigger = AnacostiaBaseTrigger(
         "train_validate_trigger", 
         trigger_schedule=IntervalTrigger(seconds=5), 
-        action_functions=[train_model],
+        action_functions=[train_model, validate_model],
         task_description="Run training and validation stages of the pipeline"
     )
 

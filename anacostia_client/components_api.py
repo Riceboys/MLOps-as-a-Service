@@ -4,14 +4,14 @@ import requests
 import json
 import os
 import time
-from typing import List, Dict, Any
+from typing import List
 
 
 class AnacostiaComponent(object):
-    def __init__(self, host_ip: str, host_port: int, image_name: str) -> None:
+    def __init__(self, host_ip: str, image_name: str) -> None:
         self.host_ip = host_ip
-        self.host_port = host_port
-        self.url = f"http://{host_ip}:{host_port}"
+        self.host_port = 8080
+        self.url = f"http://{host_ip}:{self.host_port}"
 
         self.client = docker.from_env()
         self.image_name = image_name
@@ -33,9 +33,9 @@ class AnacostiaComponent(object):
 
 
 class MLflowComponent(AnacostiaComponent):
-    def __init__(self, host_port: int, storage_dir: str) -> None:
+    def __init__(self, storage_dir: str) -> None:
         self.storage_dir = storage_dir
-        super().__init__("0.0.0.0", host_port, "ghcr.io/mlflow/mlflow")
+        super().__init__("0.0.0.0", "ghcr.io/mlflow/mlflow")
     
     def run_container(self) -> None:
         BACKEND_STORE_URI = "file:///app/storage"
@@ -247,9 +247,9 @@ class MLflowComponent(AnacostiaComponent):
 
 
 if __name__ == "__main__":
-    component = MLflowComponent(8080, "../anacostia-components/storage")
+    component = MLflowComponent("../anacostia-components/storage")
     
-    component.delete_tags(
+    component.set_tags(
         "4d6f7387b1714494913fd8fdadec4fd4",
-        ["tag1", "tag2"]
+        tag1="value1"
     )
