@@ -15,6 +15,7 @@ class AnacostiaComponent(object):
 
         self.client = docker.from_env()
         self.image_name = image_name
+        self.container_name = "mlflow-component"
         self.get_image()
         self.run_container()
 
@@ -32,6 +33,7 @@ class AnacostiaComponent(object):
         raise NotImplementedError
 
 
+# in the future, MLflowComponent will be in its own 3rd party library that is installable via pip
 class MLflowComponent(AnacostiaComponent):
     def __init__(self, storage_dir: str) -> None:
         self.storage_dir = storage_dir
@@ -245,11 +247,46 @@ class MLflowComponent(AnacostiaComponent):
             if response != {}:
                 print(response)
 
+    def log_model(self, run_id: str, model_path: str, model_name: str, **kwargs) -> None:
+        command = f"python /app/storage/script.py"
+        mlflow_container = self.client.containers.get(self.container_name)
+        exec_results = mlflow_container.exec_run(cmd=command)
+        print(exec_results.output.decode("utf-8"))
+
+
+from sklearn.model_selection import train_test_split
+from sklearn.datasets import load_diabetes
+from sklearn.ensemble import RandomForestRegressor
+import pickle
 
 if __name__ == "__main__":
     component = MLflowComponent("../anacostia-components/storage")
     
+    """
+    # Load the diabetes dataset.
+    db = load_diabetes()
+    X_train, X_test, y_train, y_test = train_test_split(db.data, db.target)
+
+    # Create and train models.
+    rf = RandomForestRegressor(n_estimators=100, max_depth=6, max_features=3)
+    rf.fit(X_train, y_train)
+
+    # Use the model to make predictions on the test dataset.
+    predictions = rf.predict(X_test)
+    print(predictions)
+
+    # save the model in the native sklearn format
+    filename = "../anacostia-components/storage/random_forest.pkl"
+    pickle.dump(rf, open(filename, "wb"))
+
     component.set_tags(
         "4d6f7387b1714494913fd8fdadec4fd4",
         tag1="value1"
+    )
+    """
+
+    component.log_model(
+        "4d6f7387b1714494913fd8fdadec4fd4",
+        "/app/storage/models/random_forest.pkl",
+        "random_forest_v1"
     )
