@@ -2,6 +2,7 @@ import socket
 import subprocess
 import time
 import docker
+from urllib.parse import urlparse
 
 
 def find_available_port():
@@ -82,3 +83,10 @@ def is_container_running(container_name: str):
         return container.status == "running"
     except docker.errors.NotFound:
         return False
+
+def is_uri_or_filepath(string):
+    parsed = urlparse(string)
+    if parsed.scheme:
+        return True  # It's a URI
+    else:
+        return False  # It's a regular file path

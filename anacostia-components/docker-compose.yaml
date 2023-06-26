@@ -4,12 +4,15 @@ services:
     build:
       context: ./mlflow
       dockerfile: Dockerfile
-    image: mdo6180/mlflow
+    image: mdo6180/mlflow-component:latest
     container_name: mlflow-test
+    command: python main.py
     ports:
-      - "8000:5000"
+      - "8001:8000"
+      - "5001:5000"
     volumes:
-      - ./storage:/app/storage
+      - ./mlruns:/mlruns
+      - ./anacostia-artifacts:/artifacts
 
 # build and run all image:
 # $ docker-compose up --build
