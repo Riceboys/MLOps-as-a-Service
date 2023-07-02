@@ -1,10 +1,9 @@
 import docker
-from utils import establish_connection, get_ip_address, is_container_running
+from utils import is_container_running
 import requests
-import json
 import os
 import time
-from typing import List
+from typing import Dict, Any
 from urllib.parse import urlparse
 
 
@@ -87,16 +86,22 @@ class MLflowComponent(AnacostiaComponent):
             print(f"{self.CONTAINER_NAME}  is already running on http://localhost:{self.ANACOSTIA_HOST_PORT}.")
             print(f"MLflow Tracking UI can be accessed at http://localhost:{self.MLFLOW_HOST_PORT}")
 
-    def create_experiment(self, experiment_name: str) -> None:
+    def create_experiment(self, experiment_name: str, tags: Dict[str, Any] = None) -> None:
         # we have to run this inside a while loop because although the container is running, 
         # the Anacostia Flask API in the container might not be ready to accept requests
         while True:
             try:
                 url = f"http://localhost:{self.ANACOSTIA_HOST_PORT}/create-experiment"
+
                 data = {"name": experiment_name}
+
+                if tags is not None:
+                    data["tags"] = tags
+
                 response = requests.post(url=url, json=data)
                 print(response.text)
                 return
+
             except Exception as e:
                 time.sleep(0.5)
 
@@ -106,4 +111,7 @@ if __name__ == "__main__":
         backend_store="../anacostia-components/mlruns", 
         artifacts="../anacostia-components/mlflow"
     )
-    component.create_experiment("seventh-experiment")
+    component.create_experiment(
+        experiment_name="fifteenth-experiment",
+        tags={"version": "v1", "priority": "P1"}
+    )
