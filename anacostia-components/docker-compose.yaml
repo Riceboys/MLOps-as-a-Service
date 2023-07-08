@@ -1,11 +1,17 @@
 version: '3'
 services:
-  mlflow:
+  mlflow-prod:
     build:
       context: ./mlflow
-      dockerfile: Dockerfile
+      target: prod
     image: mdo6180/mlflow-component:latest
-    container_name: mlflow-test
+
+  mlflow-dev:
+    build:
+      context: ./mlflow
+      target: dev
+    image: mdo6180/mlflow-dev:latest
+    container_name: Anacostia-MLflow
     command: python main.py
     ports:
       - "8001:8000"
@@ -13,6 +19,7 @@ services:
     volumes:
       - ./mlruns:/mlruns
       - ./anacostia-artifacts:/artifacts
+      - ./mlflow:/app
 
 # build and run all image:
 # $ docker-compose up --build

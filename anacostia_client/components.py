@@ -53,10 +53,12 @@ class MLflowComponent(AnacostiaComponent):
 
         if urlparse(backend_store).scheme in ["", "file"]:
             if os.path.isdir(backend_store):
+                print("backend_store is a directory")
                 self.volumes[os.path.abspath(backend_store)] = {"bind": self.MLFLOW_BACKEND_STORE, "mode": "rw"}
 
         if urlparse(artifacts).scheme in ["", "file"]:
             if os.path.isdir(artifacts):
+                print("artifacts is a directory")
                 self.volumes[os.path.abspath(artifacts)] = {"bind": self.MLFLOW_DEFAULT_ARTIFACT_ROOT, "mode": "rw"}   
 
         super().__init__("0.0.0.0", "mdo6180/mlflow-component:latest")
@@ -105,13 +107,25 @@ class MLflowComponent(AnacostiaComponent):
             except Exception as e:
                 time.sleep(0.5)
 
+    def delete_experiment(self, experiment_id: str) -> None:
+        # we have to run this inside a while loop because although the container is running, 
+        # the Anacostia Flask API in the container might not be ready to accept requests
+        while True:
+            try:
+                url = f"http://localhost:{self.ANACOSTIA_HOST_PORT}/delete-experiment"
+
+                data = {"experiment_id": experiment_id}
+
+                response = requests.post(url=url, json=data)
+                print(response.text)
+                return
+
+            except Exception as e:
+                time.sleep(0.5)
+
 
 if __name__ == "__main__":
     component = MLflowComponent(
         backend_store="../anacostia-components/mlruns", 
         artifacts="../anacostia-components/mlflow"
-    )
-    component.create_experiment(
-        experiment_name="sixteenth-experiment",
-        tags={"version": "v1", "priority": "P1"}
     )

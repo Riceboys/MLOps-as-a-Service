@@ -1,5 +1,4 @@
-FROM ghcr.io/mlflow/mlflow:latest
-
+FROM ghcr.io/mlflow/mlflow:latest as base
 WORKDIR /app
 
 # install git
@@ -9,9 +8,7 @@ COPY requirements.txt requirements.txt
 
 RUN mkdir /mlruns
 RUN pip install --upgrade pip
-RUN pip install -r requirements.txt
-
-COPY main.py main.py
+RUN pip install --no-cache-dir -r requirements.txt
 
 ENV MLFLOW_HOST="0.0.0.0"
 ENV MLFLOW_PORT="5000"
@@ -21,3 +18,10 @@ ENV ANACOSTIA_PORT="8000"
 ENV MLFLOW_BACKEND_STORE_URI="file:///mlruns"
 ENV MLFLOW_TRACKING_URI="file:///mlruns"
 ENV MLFLOW_DEFAULT_ARTIFACT_ROOT="/artifacts"
+
+FROM base as dev
+# the MLflow UI currently doesn't work in dev mode
+RUN mlflow server &
+
+FROM base as prod
+COPY main.py main.py
