@@ -46,7 +46,7 @@ class MLflowComponent(AnacostiaComponent):
     MLFLOW_DEFAULT_ARTIFACT_ROOT="/artifacts"
     MLFLOW_BACKEND_STORE="/mlruns"
 
-    def __init__(self, backend_store: str = None, artifacts: str = None) -> None:
+    def __init__(self, backend_store: str = None, artifacts: str = None, git_repo: str = None) -> None:
 
         # create volumes if the value for backend_store and artifacts are not URIs
         self.volumes = {}
@@ -57,7 +57,13 @@ class MLflowComponent(AnacostiaComponent):
 
         if urlparse(artifacts).scheme == "":
             if os.path.isdir(artifacts):
-                self.volumes[os.path.abspath(artifacts)] = {"bind": self.MLFLOW_DEFAULT_ARTIFACT_ROOT, "mode": "rw"}          
+                self.volumes[os.path.abspath(artifacts)] = {"bind": self.MLFLOW_DEFAULT_ARTIFACT_ROOT, "mode": "rw"}   
+
+        if git_repo is not None:
+            if os.path.isdir(git_repo) and git_repo.endswith(".git"):
+                git_dir = os.path.abspath(git_repo)
+                git_parent_dir = git_dir.replace(".git", "")
+                self.volumes[git_parent_dir] = {"bind": "/client_project/", "mode": "rw"}       
 
         super().__init__("0.0.0.0", "mdo6180/mlflow-component:latest")
 
@@ -109,9 +115,10 @@ class MLflowComponent(AnacostiaComponent):
 if __name__ == "__main__":
     component = MLflowComponent(
         backend_store="../anacostia-components/mlruns", 
-        artifacts="../anacostia-components/mlflow"
+        artifacts="../anacostia-components/mlflow",
+        git_repo="../.git"
     )
     component.create_experiment(
-        experiment_name="fifteenth-experiment",
+        experiment_name="sixteenth-experiment",
         tags={"version": "v1", "priority": "P1"}
     )
