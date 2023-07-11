@@ -67,3 +67,18 @@ class AnacostiaPipeline(object):
 # - when a trigger's action functions are running, the trigger schedule should be paused until all the action functions are finished running
 # - when a trigger's action functions are running, other triggers' action functions and trigger schedule should be able to run unaffected
 # - when one trigger stops, the pipeline should be able to continue running the action functions of the other triggers
+
+
+class AnacostiaPipelineBuilder(object):
+    def __init__(self) -> None:
+        self.triggers = []
+        self.components = []
+    
+    def add_trigger(self, trigger: AnacostiaBaseTrigger) -> None:
+        self.triggers.append(trigger)
+    
+    def add_component(self, component: AnacostiaComponent) -> None:
+        self.components.append(component)
+    
+    def build(self) -> AnacostiaPipeline:
+        return AnacostiaPipeline(self.components, self.triggers)

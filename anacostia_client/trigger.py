@@ -2,6 +2,7 @@ from constants import scheduler, lock, colors
 from apscheduler.triggers.base import BaseTrigger
 from apscheduler.triggers.interval import IntervalTrigger
 from collections.abc import Callable
+from numpy import ndarray
 
 
 class AnacostiaBaseTrigger:
@@ -65,3 +66,33 @@ class AnacostiaBaseTrigger:
 
                 # once action functions are done, we're resuming the trigger running as scheduled
                 scheduler.resume_job(self.trigger_name)
+
+class AnacostiaEvalBaseTrigger:
+    def __init__(
+            self,
+            metrics_logger: Callable[..., dict],
+            artifacts_logger: Callable[..., dict],
+            task_description: str = None,
+        ) -> None:
+
+        print(f"Evaluation trigger is running")
+        self.task_description = task_description
+
+    def enough_data(self) -> bool:
+        raise NotImplementedError
+
+    def validate_data(self) -> bool:
+        raise NotImplementedError 
+
+    def log_metrics(self) -> dict:
+        raise NotImplementedError
+    
+    def log_feature_vectors(self, feature_vector: ndarray) -> dict:
+        raise NotImplementedError
+    
+    def execute(self) -> None:
+        if (self.enough_data() is True) and (self.validate_data() is True):
+            metrics = self.log_metrics()
+            return True
+
+        return False

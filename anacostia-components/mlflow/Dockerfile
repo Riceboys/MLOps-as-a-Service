@@ -19,9 +19,5 @@ ENV MLFLOW_BACKEND_STORE_URI="file:///mlruns"
 ENV MLFLOW_TRACKING_URI="file:///mlruns"
 ENV MLFLOW_DEFAULT_ARTIFACT_ROOT="/artifacts"
 
-FROM base as dev
-# the MLflow UI currently doesn't work in dev mode
-RUN mlflow server &
-
 FROM base as prod
 COPY main.py main.py

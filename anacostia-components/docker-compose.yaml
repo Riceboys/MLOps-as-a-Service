@@ -9,10 +9,10 @@ services:
   mlflow-dev:
     build:
       context: ./mlflow
-      target: dev
-    image: mdo6180/mlflow-dev:latest
+      target: base
+    image: mdo6180/mlflow-component:latest
     container_name: Anacostia-MLflow
-    command: python main.py
+    command: ["mlflow server &", "python main.py"]
     ports:
       - "8001:8000"
       - "5001:5000"
