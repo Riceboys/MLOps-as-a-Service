@@ -61,7 +61,6 @@ class MLflowComponent(AnacostiaComponent):
             self.volumes[os.path.abspath(artifacts)] = {"bind": self.MLFLOW_DEFAULT_ARTIFACT_ROOT, "mode": "rw"}   
 
         super().__init__("mdo6180/mlflow-component:latest")
-        super().__init__("mdo6180/mlflow-component:latest")
 
     def run_container(self) -> None:
         if is_container_running(self.CONTAINER_NAME) is False:
@@ -155,4 +154,4 @@ if __name__ == "__main__":
         backend_store="file:///Users/minhquando/Desktop/MLOps-Service/anacostia-components/mlruns",
         artifacts="../anacostia-components/mlflow"
     )
-    component.delete_experiment("445527247702970548")
+    component.delete_experiment("464027923722060296")
