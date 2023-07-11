@@ -15,9 +15,7 @@ def find_available_port_mlflow() -> int:
     return 5001
 
 class AnacostiaComponent(object):
-    def __init__(self, host_ip: str, image_name: str) -> None:
-        self.host_ip = host_ip
-
+    def __init__(self, image_name: str) -> None:
         self.client = docker.from_env()
         self.image_name = image_name
         self.run_container()
@@ -48,18 +46,20 @@ class MLflowComponent(AnacostiaComponent):
 
         # create volumes if the value for backend_store and artifacts are not URIs
         self.volumes = {}
+        
+        if urlparse(backend_store).scheme == "file":
+            backend_store = urlparse(backend_store).path
+        
+        if os.path.isdir(backend_store):
+            self.volumes[os.path.abspath(backend_store)] = {"bind": self.MLFLOW_BACKEND_STORE, "mode": "rw"}
+        
+        if urlparse(artifacts).scheme == "file":
+            artifacts = urlparse(artifacts).path
 
-        if urlparse(backend_store).scheme in ["", "file"]:
-            if os.path.isdir(backend_store):
-                print("backend_store is a directory")
-                self.volumes[os.path.abspath(backend_store)] = {"bind": self.MLFLOW_BACKEND_STORE, "mode": "rw"}
+        if os.path.isdir(artifacts):
+            self.volumes[os.path.abspath(artifacts)] = {"bind": self.MLFLOW_DEFAULT_ARTIFACT_ROOT, "mode": "rw"}   
 
-        if urlparse(artifacts).scheme in ["", "file"]:
-            if os.path.isdir(artifacts):
-                print("artifacts is a directory")
-                self.volumes[os.path.abspath(artifacts)] = {"bind": self.MLFLOW_DEFAULT_ARTIFACT_ROOT, "mode": "rw"}   
-
-        super().__init__("0.0.0.0", "mdo6180/mlflow-component:latest")
+        super().__init__("mdo6180/mlflow-component:latest")
 
     def run_container(self) -> None:
         if is_container_running(self.CONTAINER_NAME) is False:
@@ -126,7 +126,7 @@ class MLflowComponent(AnacostiaComponent):
 
 if __name__ == "__main__":
     component = MLflowComponent(
-        backend_store="../anacostia-components/mlruns", 
+        backend_store="file:///Users/minhquando/Desktop/MLOps-Service/anacostia-components/mlruns",
         artifacts="../anacostia-components/mlflow"
     )
-    component.delete_experiment("329864252141292576")
+    component.delete_experiment("445527247702970548")
