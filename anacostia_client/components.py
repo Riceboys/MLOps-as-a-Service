@@ -20,8 +20,6 @@ class AnacostiaComponent(object):
 
         self.client = docker.from_env()
         self.image_name = image_name
-        self.container_name = "mlflow-test"
-        self.get_image()
         self.run_container()
 
     def get_image(self) -> None:
@@ -65,6 +63,8 @@ class MLflowComponent(AnacostiaComponent):
 
     def run_container(self) -> None:
         if is_container_running(self.CONTAINER_NAME) is False:
+            self.get_image()
+            
             print(f"Starting container {self.CONTAINER_NAME}.")
 
             container = self.client.containers.run(
@@ -129,3 +129,4 @@ if __name__ == "__main__":
         backend_store="../anacostia-components/mlruns", 
         artifacts="../anacostia-components/mlflow"
     )
+    component.delete_experiment("329864252141292576")
