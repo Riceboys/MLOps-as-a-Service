@@ -19,7 +19,6 @@ class AnacostiaComponent(object):
 
         self.client = docker.from_env()
         self.image_name = image_name
-        self.get_image()
         self.run_container()
 
     def get_image(self) -> None:
@@ -48,21 +47,26 @@ class MLflowComponent(AnacostiaComponent):
 
         # create volumes if the value for backend_store and artifacts are not URIs
         self.volumes = {}
+        
+        if urlparse(backend_store).scheme == "file":
+            backend_store = urlparse(backend_store).path
+        
+        if os.path.isdir(backend_store):
+            self.volumes[os.path.abspath(backend_store)] = {"bind": self.MLFLOW_BACKEND_STORE, "mode": "rw"}
+        
+        if urlparse(artifacts).scheme == "file":
+            artifacts = urlparse(artifacts).path
 
-        if urlparse(backend_store).scheme in ["", "file"]:
-            if os.path.isdir(backend_store):
-                print("backend_store is a directory")
-                self.volumes[os.path.abspath(backend_store)] = {"bind": self.MLFLOW_BACKEND_STORE, "mode": "rw"}
+        if os.path.isdir(artifacts):
+            self.volumes[os.path.abspath(artifacts)] = {"bind": self.MLFLOW_DEFAULT_ARTIFACT_ROOT, "mode": "rw"}   
 
-        if urlparse(artifacts).scheme in ["", "file"]:
-            if os.path.isdir(artifacts):
-                print("artifacts is a directory")
-                self.volumes[os.path.abspath(artifacts)] = {"bind": self.MLFLOW_DEFAULT_ARTIFACT_ROOT, "mode": "rw"}   
-
+        super().__init__("mdo6180/mlflow-component:latest")
         super().__init__("mdo6180/mlflow-component:latest")
 
     def run_container(self) -> None:
         if is_container_running(self.CONTAINER_NAME) is False:
+            self.get_image()
+            
             print(f"Starting container {self.CONTAINER_NAME}.")
 
             container = self.client.containers.run(
@@ -147,10 +151,8 @@ class SqliteComponent(AnacostiaComponent):
 
 
 if __name__ == "__main__":
-    mlflow_component = MLflowComponent(
-        backend_store="../anacostia-components/mlruns", 
+    component = MLflowComponent(
+        backend_store="file:///Users/minhquando/Desktop/MLOps-Service/anacostia-components/mlruns",
         artifacts="../anacostia-components/mlflow"
     )
-    #mlflow_component.delete_experiment("273369598028718858")
-
-    #sqlite_component = SqliteComponent("../anacostia-components/sqlite3")
+    component.delete_experiment("445527247702970548")
