@@ -127,7 +127,6 @@ class MLflowComponent(AnacostiaComponent):
 
 class SqliteComponent(AnacostiaComponent):
     CONTAINER_NAME = "Anacostia-SQLite"
-    ANACOSTIA_HOST_PORT=str(find_available_port_flask())
 
     def __init__(self, backend_store: str) -> None:
         self.volumes = {}
@@ -150,8 +149,11 @@ class SqliteComponent(AnacostiaComponent):
 
 
 if __name__ == "__main__":
+    """
     component = MLflowComponent(
         backend_store="file:///Users/minhquando/Desktop/MLOps-Service/anacostia-components/mlruns",
         artifacts="../anacostia-components/mlflow"
     )
     component.delete_experiment("464027923722060296")
+    """
+    component = SqliteComponent(backend_store="file:///Users/minhquando/Desktop/MLOps-Service/anacostia-components/mlruns")

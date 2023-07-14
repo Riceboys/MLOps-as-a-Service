@@ -1,0 +1,18 @@
+{
+  "hostname": "localhost",
+  "config_path": "/Users/minhquando/Desktop/MLOps-Service/anacostia-components/anacostia",
+  "pipeline_components": [
+    {
+      "experiment_tracker": null
+    },
+    {
+      "backend_store": null
+    },
+    {
+      "model_registry": null
+    },
+    {
+      "artifact_store": null
+    }
+  ]
+}

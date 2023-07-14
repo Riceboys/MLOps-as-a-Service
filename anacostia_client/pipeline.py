@@ -4,6 +4,7 @@ from constants import scheduler
 import sys
 import os
 from typing import List
+import json
 
 
 class AnacostiaPipeline(object):
@@ -70,9 +71,33 @@ class AnacostiaPipeline(object):
 
 
 class AnacostiaPipelineBuilder(object):
-    def __init__(self) -> None:
+    def __init__(self, path: str, hostname: str) -> None:
         self.triggers = []
         self.components = []
+
+        # create anacostia directory
+        anacostia_path = os.path.join(path, "anacostia")
+        anacostia_path = os.path.abspath(anacostia_path)
+        if os.path.exists(anacostia_path) is False:
+            os.makedirs(anacostia_path)
+        
+        # create config file
+        if os.path.exists(os.path.join(anacostia_path, "anacostia_config.json")) is False:
+            data = {
+                "hostname": hostname,
+                "config_path": anacostia_path,
+                "pipeline_components": [
+                    {"experiment_tracker": None}, 
+                    {"backend_store": None}, 
+                    {"model_registry": None}, 
+                    {"artifact_store": None}
+                ]
+            }
+
+            config_file_path = os.path.join(anacostia_path, "anacostia_config.json")
+            with open(config_file_path, "w") as config_file:
+                json.dump(data, config_file, indent=2)
+
     
     def add_trigger(self, trigger: AnacostiaBaseTrigger) -> None:
         self.triggers.append(trigger)
@@ -82,3 +107,7 @@ class AnacostiaPipelineBuilder(object):
     
     def build(self) -> AnacostiaPipeline:
         return AnacostiaPipeline(self.components, self.triggers)
+
+
+if __name__ == "__main__":
+    AnacostiaPipelineBuilder("../anacostia-components", "localhost")

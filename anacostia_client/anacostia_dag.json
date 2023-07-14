@@ -1,0 +1,70 @@
+{
+    "nodes": [
+        {
+            "node_name": "Anacostia-Pipeline",
+            "children": [
+                "Anacostia-MLflow",
+                "Anacostia-SQLite",
+                "Filestore1",
+                "Filestore2"
+            ]
+        },
+        {
+            "node_name": "Anacostia-MLflow",
+            "children": [
+                "Anacostia-SQLite",
+                "Filestore1",
+                "Filestore2"
+            ]
+        },
+        {
+            "node_name": "Anacostia-SQLite",
+            "children": []
+        },
+        {
+            "node_name": "Filestore1",
+            "children": []
+        },
+        {
+            "node_name": "Filestore2",
+            "children": []
+        }
+    ],
+    "edges": [
+        {
+            "source": "Anacostia-MLflow",
+            "target": "Anacostia-SQLite",
+            "URI": "sqlite:///mlruns.db"
+        },
+        {
+            "source": "Anacostia-MLflow",
+            "target": "Filestore1",
+            "URI": "file:///mlruns"
+        },
+        {
+            "source": "Anacostia-MLflow",
+            "target": "Filestore2",
+            "URI": "file:///mlruns/artifacts"
+        },
+        {
+            "source": "Anacostia-Pipeline",
+            "target": "Anacostia-MLflow",
+            "URI": "http://localhost:5001"
+        },
+        {
+            "source": "Anacostia-Pipeline",
+            "target": "Anacostia-SQLite",
+            "URI": "sqlite:///mlruns.db"
+        },
+        {
+            "source": "Anacostia-Pipeline",
+            "target": "Filestore1",
+            "URI": "file:///mlruns"
+        },
+        {
+            "source": "Anacostia-Pipeline",
+            "target": "Filestore2",
+            "URI": "file:///mlruns/artifacts"
+        }
+    ]
+}
